@@ -49,11 +49,21 @@ Se o vídeo não carregar, o hero mostra um brilho suave de reserva (não fica v
 ## O que ainda precisa dos dados reais
 
 1. **Vídeo da flor** — ver aviso acima.
-2. **Foto da Eliana** — substitua o placeholder em `.sobre-photo` por uma `<img>`.
+2. **Foto da Eliana** — ✅ já colocada (`IMG/Foto Eliana.jpeg`) na seção Sobre.
+   Enquadramento via `object-position` em `.sobre-photo img` (styles.css).
 3. **WhatsApp** — troque `5500000000000` (aparece no CTA e no rodapé).
 4. **E-mail** — troque `contato@exemplo.com`.
 5. **Instagram** — ajuste o link do ícone no rodapé.
 6. **Terapias e bio** — os textos são um ponto de partida editável.
+
+## Fundo do site (partículas + brilhos)
+
+O site inteiro tem um fundo ambiente em vez de preto chapado:
+- **Brilhos suaves fixos** no `body` (CSS), nas cores da paleta.
+- **Partículas animadas** (Canvas 2D leve) em `script.js` → `initParticles`.
+  Cintilam e derivam devagar; densidade proporcional à tela (teto de 80),
+  FPS limitado a 30, pausa quando a aba está em segundo plano. Ajuste cores em
+  `COLORS`, quantidade no cálculo de `count`, e tamanho/velocidade em `build`.
 
 ## Fundo Aurora (seção Sobre)
 

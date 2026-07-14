@@ -102,7 +102,109 @@ document.addEventListener("DOMContentLoaded", () => {
   // Porte para WebGL2 nativo do componente Aurora (React Bits / ogl),
   // usando os mesmos shaders. Sem dependências externas.
   initAurora();
+
+  // ---------- partículas animadas (fundo do site) ----------
+  initParticles();
 });
+
+function initParticles() {
+  const canvas = document.getElementById("particlesCanvas");
+  if (!canvas) return;
+  const ctx = canvas.getContext("2d");
+  if (!ctx) return;
+
+  // cores da paleta do site
+  const COLORS = [
+    [184, 146, 255], // violeta
+    [255, 150, 180], // rosé
+    [126, 224, 168], // verde suave
+    [235, 225, 255], // branco quente
+  ];
+
+  // sprite de brilho pré-renderizado por cor (evita gradiente por frame)
+  const SPRITE_R = 28;
+  const sprites = COLORS.map(([r, g, b]) => {
+    const s = document.createElement("canvas");
+    s.width = s.height = SPRITE_R * 2;
+    const sc = s.getContext("2d");
+    const grad = sc.createRadialGradient(SPRITE_R, SPRITE_R, 0, SPRITE_R, SPRITE_R, SPRITE_R);
+    grad.addColorStop(0, `rgba(${r},${g},${b},0.9)`);
+    grad.addColorStop(0.35, `rgba(${r},${g},${b},0.4)`);
+    grad.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    sc.fillStyle = grad;
+    sc.fillRect(0, 0, SPRITE_R * 2, SPRITE_R * 2);
+    return s;
+  });
+
+  const FPS = 30;
+  const frameGap = 1000 / FPS;
+  let W, H, particles = [], lastDraw = 0;
+
+  function resize() {
+    W = window.innerWidth;
+    H = window.innerHeight;
+    canvas.width = W;
+    canvas.height = H;
+    build();
+  }
+
+  function build() {
+    particles.length = 0;
+    // densidade proporcional à área, com teto para manter leve
+    const count = Math.min(80, Math.round((W * H) / 24000));
+    for (let i = 0; i < count; i++) {
+      particles.push({
+        x: Math.random() * W,
+        y: Math.random() * H,
+        size: 3 + Math.random() * 11,           // raio do brilho
+        vx: (Math.random() - 0.5) * 0.5,        // deriva suave, porém perceptível
+        vy: -(0.12 + Math.random() * 0.4),      // sobem devagar, como motes de luz
+        base: 0.12 + Math.random() * 0.3,       // opacidade base
+        phase: Math.random() * Math.PI * 2,
+        tw: 0.4 + Math.random() * 0.9,          // velocidade do cintilar
+        swayAmp: 6 + Math.random() * 16,        // amplitude do balanço lateral
+        swaySpeed: 0.0003 + Math.random() * 0.0006, // velocidade do balanço
+        sprite: sprites[(Math.random() * sprites.length) | 0],
+      });
+    }
+  }
+
+  function renderFrame(t) {
+    ctx.clearRect(0, 0, W, H);
+    ctx.globalCompositeOperation = "lighter";
+    for (const p of particles) {
+      p.x += p.vx;
+      p.y += p.vy;
+      // reentra pelo lado oposto
+      if (p.x < -30) p.x = W + 30; else if (p.x > W + 30) p.x = -30;
+      if (p.y < -30) p.y = H + 30; else if (p.y > H + 30) p.y = -30;
+
+      // balanço lateral suave (offset no desenho, não acumula)
+      const swayX = Math.sin(t * p.swaySpeed + p.phase) * p.swayAmp;
+      const twinkle = 0.45 + 0.55 * Math.sin(p.phase + t * 0.001 * p.tw);
+      ctx.globalAlpha = Math.max(0, p.base * twinkle);
+      const s = p.size;
+      ctx.drawImage(p.sprite, p.x + swayX - s, p.y - s, s * 2, s * 2);
+    }
+    ctx.globalAlpha = 1;
+    ctx.globalCompositeOperation = "source-over";
+  }
+
+  function frame(t) {
+    requestAnimationFrame(frame);
+    if (document.hidden) return;
+    if (t - lastDraw < frameGap) return;
+    lastDraw = t;
+    renderFrame(t);
+  }
+
+  resize();
+  let resizeTimer;
+  window.addEventListener("resize", () => { clearTimeout(resizeTimer); resizeTimer = setTimeout(resize, 150); });
+  // garantia: se o layout ainda não estava pronto no init, recria com as dimensões certas
+  window.addEventListener("load", () => { if (!particles.length || !W) resize(); });
+  requestAnimationFrame(frame);
+}
 
 const AURORA_VERT = `#version 300 es
 in vec2 position;

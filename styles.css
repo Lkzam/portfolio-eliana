@@ -42,6 +42,17 @@ body {
 
 a { color: inherit; text-decoration: none; }
 
+/* ============ PARTÍCULAS DE FUNDO ============ */
+.bg-particles {
+  position: fixed;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  z-index: -1;          /* acima dos brilhos do body, atrás do conteúdo */
+  pointer-events: none;
+  display: block;
+}
+
 /* ============ CURSOR CUSTOMIZADO ============ */
 .cursor-ring-outline {
   position: fixed;
@@ -321,6 +332,7 @@ a { color: inherit; text-decoration: none; }
   display: flex; align-items: center; justify-content: center;
   overflow: hidden;
 }
+.sobre-photo img { width: 100%; height: 100%; object-fit: cover; object-position: center 18%; display: block; }
 .sobre-photo-hint { color: rgba(255, 255, 255, 0.45); font-size: 0.85rem; letter-spacing: 0.15em; text-transform: uppercase; }
 .sobre-text p { color: var(--muted); margin-bottom: 18px; }
 .sobre-text p:first-of-type { color: var(--ink); }
